@@ -38,6 +38,9 @@ pub mod bitboard {
         pub fn set_cell(& mut self, c: Cell) {
             self.state |= 1 << c as usize;
         }
+        pub fn reset_cell(& mut self, c: Cell) {
+            self.state &= !(1 << c as usize);
+        }
     }
 
     // ------------------------------------------------------------
@@ -92,6 +95,15 @@ pub mod bitboard {
              Cell::E5, Cell::F6, Cell::G7, Cell::H8, ]);
         assert_eq!(bb.is_empty(), false);
         assert_eq!(bb.state, 0x80_40_20_10_08_04_02_01);
+    }
+
+    #[test]
+    fn init_bitboard_using_a_cells_vector_with_active_cell_in_diagonal_and_reset_e5() {
+        let mut bb = BitBoard::from([Cell::A1, Cell::B2, Cell::C3, Cell::D4,
+             Cell::E5, Cell::F6, Cell::G7, Cell::H8, ]);
+        bb.reset_cell(Cell::E5);
+        assert_eq!(bb.state, 0x80_40_20_00_08_04_02_01);
+
     }
     // TESTS ---------------------------------------------------------
 }
