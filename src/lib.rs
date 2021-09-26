@@ -1,6 +1,8 @@
 pub mod bitboard {
 
     const EMPTY_STATE: u64 = 0;
+    const BBS_DIAGONAL: u64 = 0x80_40_20_10_08_04_02_01;
+    const BBS_ANTIDIAGONAL: u64 = 0x01_02_04_08_10_20_40_80;
 
     enum File
     {
@@ -94,7 +96,15 @@ pub mod bitboard {
         let bb = BitBoard::from([Cell::A1, Cell::B2, Cell::C3, Cell::D4,
              Cell::E5, Cell::F6, Cell::G7, Cell::H8, ]);
         assert_eq!(bb.is_empty(), false);
-        assert_eq!(bb.state, 0x80_40_20_10_08_04_02_01);
+        assert_eq!(bb.state, BBS_DIAGONAL);
+    }
+
+    #[test]
+    fn init_bitboard_using_a_cells_vector_with_active_cell_in_antidiagonal() {
+        let bb = BitBoard::from([Cell::A8, Cell::B7, Cell::C6, Cell::D5,
+             Cell::E4, Cell::F3, Cell::G2, Cell::H1, ]);
+        assert_eq!(bb.is_empty(), false);
+        assert_eq!(bb.state, BBS_ANTIDIAGONAL);
     }
 
     #[test]
