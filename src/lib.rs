@@ -1,12 +1,12 @@
 pub mod bitboard {
 
     const EMPTY_STATE: u64 = 0;
-    const FULL_STATE: u64 = 0xFFFFFFFFFFFFFFFF;
+    const FULL_STATE: u64 = 0xFF_FF_FF_FF_FF_FF_FF_FF;
     const BBS_DIAGONAL: u64 = 0x80_40_20_10_08_04_02_01;
     const BBS_ANTIDIAGONAL: u64 = 0x01_02_04_08_10_20_40_80;
 
-    pub enum File
-    {
+    #[rustfmt::skip]
+    pub enum File {
         FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH,
     }
     // Files Masks --- These are the files indexes of the board:
@@ -32,8 +32,8 @@ pub mod bitboard {
         0x0101010101010101 << 7,
     ];
 
-    pub enum Rank
-    {
+    #[rustfmt::skip]
+    pub enum Rank {
         Rank1, Rank2, Rank3, Rank4, Rank5, Rank6, Rank7, Rank8,
     }
     // Ranks Masks --- These are the rank indexes of the board:
@@ -59,9 +59,9 @@ pub mod bitboard {
         0x00000000000000FF << 56,
     ];
 
+    #[rustfmt::skip]
     #[derive(Clone)]
-    pub enum Cell
-    {
+    pub enum Cell {
         A1, B1, C1, D1, E1, F1, G1, H1,
         A2, B2, C2, D2, E2, F2, G2, H2,
         A3, B3, C3, D3, E3, F3, G3, H3,
@@ -78,27 +78,27 @@ pub mod bitboard {
     }
     impl BitBoard {
         pub fn new() -> BitBoard {
-            BitBoard {state: EMPTY_STATE}
+            BitBoard { state: EMPTY_STATE }
         }
         pub fn is_empty(&self) -> bool {
             self.state == EMPTY_STATE
         }
-        pub fn set_cell(& mut self, c: Cell) {
+        pub fn set_cell(&mut self, c: Cell) {
             self.state |= 1 << c as usize;
         }
-        pub fn reset_cell(& mut self, c: Cell) {
+        pub fn reset_cell(&mut self, c: Cell) {
             self.state &= !(1 << c as usize);
         }
-        pub fn set_rank(& mut self, r: Rank) {
+        pub fn set_rank(&mut self, r: Rank) {
             self.state |= RANKS_BBS[r as usize];
         }
-        pub fn reset_rank(& mut self, r: Rank) {
+        pub fn reset_rank(&mut self, r: Rank) {
             self.state &= !(RANKS_BBS[r as usize]);
         }
-        pub fn set_file(& mut self, f: File) {
+        pub fn set_file(&mut self, f: File) {
             self.state |= FILES_BBS[f as usize];
         }
-        pub fn reset_file(& mut self, f: File) {
+        pub fn reset_file(&mut self, f: File) {
             self.state &= !(FILES_BBS[f as usize]);
         }
     }
@@ -127,7 +127,7 @@ pub mod bitboard {
     // arrays, vectors and slices, but onestly I still do not understand
     // it. See:
     // https://www.reddit.com/r/rust/comments/70xqpw/using_the_from_trait_not_as_easy_as_i_thought/
-    impl <'a, T: AsRef<[Cell]>> From<T> for BitBoard {
+    impl<'a, T: AsRef<[Cell]>> From<T> for BitBoard {
         fn from(cells: T) -> Self {
             let mut bb = BitBoard::new();
             for c in cells.as_ref().to_vec() {
@@ -136,76 +136,108 @@ pub mod bitboard {
             bb
         }
     }
+
     // TESTS ---------------------------------------------------------
-    #[test]
-    fn by_default_a_new_bitboard_is_empty() {
-        let bb = BitBoard::new();
-        assert_eq!(bb.state, EMPTY_STATE);
-        assert_eq!(bb.is_empty(), true);
-    }
-    #[test]
-    fn init_bitboard_using_a_vector_with_a_cell_in_h8() {
-        let bb = BitBoard::from([Cell::H8]);
-        assert_eq!(bb.is_empty(), false);
-        assert_eq!(bb.state, 0x80_00_00_00_00_00_00_00);
-    }
-    #[test]
-    fn init_bitboard_using_a_cells_vector_with_active_cell_in_diagonal() {
-        let bb = BitBoard::from([Cell::A1, Cell::B2, Cell::C3, Cell::D4,
-             Cell::E5, Cell::F6, Cell::G7, Cell::H8, ]);
-        assert_eq!(bb.is_empty(), false);
-        assert_eq!(bb.state, BBS_DIAGONAL);
-    }
+    #[cfg(test)]
+    mod tests {
 
-    #[test]
-    fn init_bitboard_using_a_cells_vector_with_active_cell_in_antidiagonal() {
-        let bb = BitBoard::from([Cell::A8, Cell::B7, Cell::C6, Cell::D5,
-             Cell::E4, Cell::F3, Cell::G2, Cell::H1, ]);
-        assert_eq!(bb.is_empty(), false);
-        assert_eq!(bb.state, BBS_ANTIDIAGONAL);
-    }
+        use super::*;
 
-    #[test]
-    fn init_bitboard_using_a_cells_vector_with_active_cell_in_diagonal_and_reset_e5() {
-        let mut bb = BitBoard::from([Cell::A1, Cell::B2, Cell::C3, Cell::D4,
-             Cell::E5, Cell::F6, Cell::G7, Cell::H8, ]);
-        bb.reset_cell(Cell::E5);
-        assert_eq!(bb.state, 0x80_40_20_00_08_04_02_01);
+        #[test]
+        fn by_default_a_new_bitboard_is_empty() {
+            let bb = BitBoard::new();
+            assert_eq!(bb.state, EMPTY_STATE);
+            assert_eq!(bb.is_empty(), true);
+        }
+        #[test]
+        fn init_bitboard_using_a_vector_with_a_cell_in_h8() {
+            let bb = BitBoard::from([Cell::H8]);
+            assert_eq!(bb.is_empty(), false);
+            assert_eq!(bb.state, 0x80_00_00_00_00_00_00_00);
+        }
+        #[test]
+        fn init_bitboard_using_a_cells_vector_with_active_cell_in_diagonal() {
+            let bb = BitBoard::from([
+                Cell::A1,
+                Cell::B2,
+                Cell::C3,
+                Cell::D4,
+                Cell::E5,
+                Cell::F6,
+                Cell::G7,
+                Cell::H8,
+            ]);
+            assert_eq!(bb.is_empty(), false);
+            assert_eq!(bb.state, BBS_DIAGONAL);
+        }
 
-    }
+        #[test]
+        fn init_bitboard_using_a_cells_vector_with_active_cell_in_antidiagonal() {
+            let bb = BitBoard::from([
+                Cell::A8,
+                Cell::B7,
+                Cell::C6,
+                Cell::D5,
+                Cell::E4,
+                Cell::F3,
+                Cell::G2,
+                Cell::H1,
+            ]);
+            assert_eq!(bb.is_empty(), false);
+            assert_eq!(bb.state, BBS_ANTIDIAGONAL);
+        }
 
-    #[test]
-    fn set_even_ranks_in_bitboard() {
-        let mut bb = BitBoard::new();
-        bb.set_rank(Rank::Rank2);
-        bb.set_rank(Rank::Rank4);
-        bb.set_rank(Rank::Rank6);
-        bb.set_rank(Rank::Rank8);
-        assert_eq!(bb.is_empty(), false);
-        assert_eq!(bb.state,
-            RANKS_BBS[Rank::Rank2 as usize] |
-            RANKS_BBS[Rank::Rank4 as usize] |
-            RANKS_BBS[Rank::Rank6 as usize] |
-            RANKS_BBS[Rank::Rank8 as usize]
-        );
-        assert_eq!(bb.state, 0xFF_00_FF_00_FF_00_FF_00);
-    }
+        #[test]
+        fn init_bitboard_using_a_cells_vector_with_active_cell_in_diagonal_and_reset_e5() {
+            let mut bb = BitBoard::from([
+                Cell::A1,
+                Cell::B2,
+                Cell::C3,
+                Cell::D4,
+                Cell::E5,
+                Cell::F6,
+                Cell::G7,
+                Cell::H8,
+            ]);
+            bb.reset_cell(Cell::E5);
+            assert_eq!(bb.state, 0x80_40_20_00_08_04_02_01);
+        }
 
-    #[test]
-    fn set_odd_files_in_bitboard() {
-        let mut bb = BitBoard::new();
-        bb.set_file(File::FileA);
-        bb.set_file(File::FileC);
-        bb.set_file(File::FileE);
-        bb.set_file(File::FileG);
-        assert_eq!(bb.is_empty(), false);
-        assert_eq!(bb.state,
-            FILES_BBS[File::FileA as usize] |
-            FILES_BBS[File::FileC as usize] |
-            FILES_BBS[File::FileE as usize] |
-            FILES_BBS[File::FileG as usize]
-        );
-        assert_eq!(bb.state, 0x55_55_55_55_55_55_55_55);
+        #[test]
+        fn set_even_ranks_in_bitboard() {
+            let mut bb = BitBoard::new();
+            bb.set_rank(Rank::Rank2);
+            bb.set_rank(Rank::Rank4);
+            bb.set_rank(Rank::Rank6);
+            bb.set_rank(Rank::Rank8);
+            assert_eq!(bb.is_empty(), false);
+            assert_eq!(
+                bb.state,
+                RANKS_BBS[Rank::Rank2 as usize]
+                    | RANKS_BBS[Rank::Rank4 as usize]
+                    | RANKS_BBS[Rank::Rank6 as usize]
+                    | RANKS_BBS[Rank::Rank8 as usize]
+            );
+            assert_eq!(bb.state, 0xFF_00_FF_00_FF_00_FF_00);
+        }
+
+        #[test]
+        fn set_odd_files_in_bitboard() {
+            let mut bb = BitBoard::new();
+            bb.set_file(File::FileA);
+            bb.set_file(File::FileC);
+            bb.set_file(File::FileE);
+            bb.set_file(File::FileG);
+            assert_eq!(bb.is_empty(), false);
+            assert_eq!(
+                bb.state,
+                FILES_BBS[File::FileA as usize]
+                    | FILES_BBS[File::FileC as usize]
+                    | FILES_BBS[File::FileE as usize]
+                    | FILES_BBS[File::FileG as usize]
+            );
+            assert_eq!(bb.state, 0x55_55_55_55_55_55_55_55);
+        }
+        // TESTS ---------------------------------------------------------
     }
-    // TESTS ---------------------------------------------------------
 }
