@@ -1,17 +1,63 @@
 pub mod bitboard {
 
     const EMPTY_STATE: u64 = 0;
+    const FULL_STATE: u64 = 0xFFFFFFFFFFFFFFFF;
     const BBS_DIAGONAL: u64 = 0x80_40_20_10_08_04_02_01;
     const BBS_ANTIDIAGONAL: u64 = 0x01_02_04_08_10_20_40_80;
 
-    enum File
+    pub enum File
     {
         FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH,
     }
-    enum Rank
+    // Files Masks --- These are the files indexes of the board:
+    //    _________________________
+    // r8|  0  1  2  3  4  5  6  7 |
+    // r7|  0  1  2  3  4  5  6  7 |
+    // r6|  0  1  2  3  4  5  6  7 |
+    // r5|  0  1  2  3  4  5  6  7 |
+    // r4|  0  1  2  3  4  5  6  7 |
+    // r3|  0  1  2  3  4  5  6  7 |
+    // r2|  0  1  2  3  4  5  6  7 |
+    // r1|  0  1  2  3  4  5  6  7 |
+    //    -------------------------
+    //     fa fb fc fd fe ff fg fh
+    const FILES_BBS: [u64; 8] = [
+        0x0101010101010101,
+        0x0101010101010101 << 1,
+        0x0101010101010101 << 2,
+        0x0101010101010101 << 3,
+        0x0101010101010101 << 4,
+        0x0101010101010101 << 5,
+        0x0101010101010101 << 6,
+        0x0101010101010101 << 7,
+    ];
+
+    pub enum Rank
     {
         Rank1, Rank2, Rank3, Rank4, Rank5, Rank6, Rank7, Rank8,
     }
+    // Ranks Masks --- These are the rank indexes of the board:
+    //     _________________________
+    // r8|  7  7  7  7  7  7  7  7 |
+    // r7|  6  6  6  6  6  6  6  6 |
+    // r6|  5  5  5  5  5  5  5  5 |
+    // r5|  4  4  4  4  4  4  4  4 |
+    // r4|  3  3  3  3  3  3  3  3 |
+    // r3|  2  2  2  2  2  2  2  2 |
+    // r2|  1  1  1  1  1  1  1  1 |
+    // r1|  0  0  0  0  0  0  0  0 |
+    //     -------------------------
+    //     fa fb fc fd fe ff fg fh
+    const RANKS_BBS: [u64; 8] = [
+        0x00000000000000FF,
+        0x00000000000000FF << 8,
+        0x00000000000000FF << 16,
+        0x00000000000000FF << 24,
+        0x00000000000000FF << 32,
+        0x00000000000000FF << 40,
+        0x00000000000000FF << 48,
+        0x00000000000000FF << 56,
+    ];
 
     #[derive(Clone)]
     pub enum Cell
@@ -42,6 +88,18 @@ pub mod bitboard {
         }
         pub fn reset_cell(& mut self, c: Cell) {
             self.state &= !(1 << c as usize);
+        }
+        pub fn set_rank(& mut self, r: Rank) {
+            self.state |= RANKS_BBS[r as usize];
+        }
+        pub fn reset_rank(& mut self, r: Rank) {
+            self.state &= !(RANKS_BBS[r as usize]);
+        }
+        pub fn set_file(& mut self, f: File) {
+            self.state |= FILES_BBS[f as usize];
+        }
+        pub fn reset_file(& mut self, f: File) {
+            self.state &= !(FILES_BBS[f as usize]);
         }
     }
 
@@ -114,6 +172,40 @@ pub mod bitboard {
         bb.reset_cell(Cell::E5);
         assert_eq!(bb.state, 0x80_40_20_00_08_04_02_01);
 
+    }
+
+    #[test]
+    fn set_even_ranks_in_bitboard() {
+        let mut bb = BitBoard::new();
+        bb.set_rank(Rank::Rank2);
+        bb.set_rank(Rank::Rank4);
+        bb.set_rank(Rank::Rank6);
+        bb.set_rank(Rank::Rank8);
+        assert_eq!(bb.is_empty(), false);
+        assert_eq!(bb.state,
+            RANKS_BBS[Rank::Rank2 as usize] |
+            RANKS_BBS[Rank::Rank4 as usize] |
+            RANKS_BBS[Rank::Rank6 as usize] |
+            RANKS_BBS[Rank::Rank8 as usize]
+        );
+        assert_eq!(bb.state, 0xFF_00_FF_00_FF_00_FF_00);
+    }
+
+    #[test]
+    fn set_odd_files_in_bitboard() {
+        let mut bb = BitBoard::new();
+        bb.set_file(File::FileA);
+        bb.set_file(File::FileC);
+        bb.set_file(File::FileE);
+        bb.set_file(File::FileG);
+        assert_eq!(bb.is_empty(), false);
+        assert_eq!(bb.state,
+            FILES_BBS[File::FileA as usize] |
+            FILES_BBS[File::FileC as usize] |
+            FILES_BBS[File::FileE as usize] |
+            FILES_BBS[File::FileG as usize]
+        );
+        assert_eq!(bb.state, 0x55_55_55_55_55_55_55_55);
     }
     // TESTS ---------------------------------------------------------
 }
